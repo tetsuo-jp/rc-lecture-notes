@@ -1,0 +1,298 @@
+%% 電子情報工学演習 セミナー資料 RC-02
+%% 消去を許した可逆ペブリング（時間と消去の交換）
+%% Build: make rc02（platex -> dvipdfmx）
+\documentclass[a4paper,11pt]{jsarticle}
+\usepackage[fleqn]{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{newtxtext}
+\usepackage[varg]{newtxmath}
+\usepackage{booktabs}
+\usepackage{url}
+\usepackage[dvipdfmx,hidelinks]{hyperref}
+\def\UrlBreaks{\do\/\do-\do.\do:}
+\Urlmuskip=0mu plus 3mu
+\emergencystretch=1em
+\setlength{\parskip}{2pt}
+
+\newtheorem{theorem}{定理}
+\newtheorem{lemma}[theorem]{補題}
+\newtheorem{proposition}[theorem]{命題}
+\newtheorem{observation}[theorem]{観察}
+\newtheorem{conjecture}[theorem]{予想}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{定義}
+\renewcommand{\proofname}{証明}
+
+\newcommand{\Mstar}{M^{*}}
+\newcommand{\estar}{e^{*}}
+\newcommand{\reach}{\operatorname{reach}}
+
+\title{消去を許した可逆ペブリング\\
+\large 電子情報工学演習 セミナー資料 RC-02}
+\author{横山 哲郎（南山大学 理工学部 電子情報工学科）}
+\date{2026 年 8 月 30 日 12 時 16 分（JST）作成\\版 1.0}
+
+\begin{document}
+\maketitle
+
+\section{この文書について}
+本資料は電子情報工学演習のセミナー資料である．査読を受けた論文ではなく，
+ゼミで読むための解説として書いた．
+
+主題は「消去を何回か許すと，可逆な計算はどれだけ速くなるか」である．
+可逆ペブリングの研究には奇妙な空白があった．時間を最小化した仕事は消去を
+一切許さず，消去を許した仕事は時間を最小化しなかった．
+本資料は鎖の場合にこの空白を埋め，交換レートを厳密に決める．
+結果の中心は第 \ref{sec:sat} 節の飽和定理であり，証明は 1 ページに収まる
+数え上げである．紙と鉛筆で追えるので，ゼミではここを読むとよい．
+
+読者として想定しているのは，帰納法と漸近記法に慣れた学部後半から大学院の
+学生である．可逆計算の予備知識は仮定しない．
+本資料の版は \url{https://github.com/tetsuo-jp/rc-lecture-notes} にある．
+
+\section{背景}
+情報を 1 ビット消すには少なくとも $kT\ln 2$ の散逸が伴う（Landauer の原理
+\cite{Land61}）．Bennett \cite{Benn73,Benn89} は，履歴を蓄えることで消去を
+まったく使わずに計算できることを示した．蓄えた履歴は捨てられないので，
+代価は時間と空間の交換として現れる．この交換を捉える最小の模型が\emph{可逆
+ペブルゲーム}である．
+
+鎖の上では，Knill \cite{Knill95} が最小手数 $F(n,S)$ を厳密に決め，
+Kr\'alovi\v{c} \cite{Kral04} が鎖・完全二分木・バタフライについて最小空間を決めた．
+どちらも消去を禁じている．一方 Li, Tromp, Vit\'anyi \cite{LiTV98} は消去を
+有限回だけ許す\emph{$m$-消去ペブルゲーム}を導入し，消去が\emph{空間}を買うことを
+示した．すなわち $m-1$ 回の消去があれば，本来必要なペブル数より少なく勝てる．
+
+彼らがしなかったこと，そして著者の知る限りその後も誰もしていないことは，
+消去の予算を固定したうえで\emph{時間}を最小化することである．文献はきれいに
+割れている．時間を抑えた仕事には消去が無く，消去のある仕事は時間を抑えない．
+本資料はこの空白を鎖について埋める．
+
+\section{模型}
+\begin{definition}[クリーンな可逆ペブリング]\label{def:game}
+$G$ を有向非巡回グラフとし，常に利用可能で数に入れない\emph{自由な入口}を区別する．
+配置とはペブルの乗った節点の集合である．節点 $v$ が配置 $C$ で\emph{利用可能}とは，
+$v$ の直前の節点がすべて自由であるか $C$ に属することをいう．
+一手は利用可能な節点のペブルを反転することである．
+\emph{ピーク $p$ の目標 $t$ に対するクリーンな計画}とは，空配置から始まり
+$\{t\}$ で終わり，ペブル数が $p$ を超えないものをいう．その最小手数を
+$\Mstar(G,t,p)$ と書き，自由な入口 $0$ と目標 $n$ を持つ鎖
+$0 \to 1 \to \cdots \to n$ については $\Mstar(n,p)$ と略す．
+\end{definition}
+
+\begin{definition}[消去の予算]\label{def:erasure}
+\emph{不可逆な除去}とは，利用可能\emph{でない}節点からペブルを取り除く手をいう．
+$e$-消去ゲームでは，不可逆な除去を高々 $e$ 手まで許す．
+ピーク $p$，不可逆な除去が高々 $e$ 回のクリーンな計画の最小手数を
+$\Mstar(n,p,e)$ と書き，そのような計画が存在する最大の $n$ を $\reach(p,e)$ と書く．
+\end{definition}
+
+定義 \ref{def:erasure} は規則ごとに \cite{LiTV98} の $m$-消去ペブルゲームと
+一致する（$m = e$）．記号だけを $\Mstar$ と揃えた．
+
+\paragraph{$e$ は何を測っているか}
+Grochow と Wolpert \cite{GW2018} は，ビット消去の回数が計算の熱力学的な代価を
+決めるわけではないと注意している．彼らの指摘のうち本資料に効くのは\emph{会計}の
+問題である．$f$ を可逆な $f_r$ へ埋め込むと $(x,f(x))$ が Landauer 代価なしに
+得られるが，残った $x$ の複製を消す代価が残り，それはもとの計算を直接行う
+Landauer 代価にちょうど等しい．したがって得かどうかは会計の仕方で決まる．
+
+本資料の模型はこの会計を明示的に固定する．終端の配置をクリーンと要求するので，
+残った材料は消去ではなく可逆な除去で片づけられる．片づけに払うのは\emph{時間}であり，
+$\Mstar(n,p,e)$ がその値段そのものである．予算 $e$ は，可逆には実行できない
+除去だけを数える．したがって $e$ を熱量とは読まず，避けがたいエントロピー生成が
+生じうる\emph{機会の数}と読む．その大きさは入力分布と実装に依存するが，
+\emph{位置}は論理構造だけで決まる．大きさについては何も主張しない．
+
+\section{飽和定理}\label{sec:sat}
+まず絶対的な床を思い出す．
+
+\begin{observation}[\cite{Knill95} の観察 2.2(i)]\label{obs:floor}
+$S \ge n$ のとき $F(n,S) = 2n-1$．とくにすべての $p$ と $e$ について
+$\Mstar(n,p,e) \ge 2n-1$ である．入口でない $n$ 個の節点はそれぞれ少なくとも
+一度置かれ，目標以外の $n-1$ 個はそれぞれ少なくとも一度除かれるからである．
+\end{observation}
+
+\begin{theorem}[飽和]\label{thm:A}
+$p \ge 2$ について
+\[
+  \Mstar(n,p,e) = 2n-1
+  \quad\Longleftrightarrow\quad
+  e \;\ge\; \estar(n,p) \;:=\; \left\lceil \frac{n-1}{p-1} \right\rceil - 1 .
+\]
+\end{theorem}
+
+観察 \ref{obs:floor} は Knill による．定理 \ref{thm:A} の内容は，その床へ
+$p \ll n$ で到達するための，消去とペブルの\emph{交換レート}である．
+
+\begin{proof}[上界（構成）]
+$p-1$ 個の節点からなるブロックに区切って前へ掃く．
+ブロック内では，左端の\emph{踏み台}のペブルの上に $p-1$ 個の節点を昇順に置き，
+降順に剥がす．置くときも除くときも直前の節点にペブルがあるので合法であり，
+クリーンである．ブロックの境界では，最後に置いた節点を新しい踏み台に昇格させ，
+古い踏み台を削除する．その時点で古い踏み台の直前は空なので，この削除は不可逆である．
+最初のブロックにはこの削除が要らない．踏み台が自由な入口 $0$ だからである．
+よって不可逆な除去の回数はブロック数から 1 を引いた
+$\lceil (n-1)/(p-1)\rceil - 1$ であり，各節点はちょうど一度置かれ高々一度除かれるので，
+手数はちょうど $n + (n-1) = 2n-1$ である．
+\end{proof}
+
+\begin{proof}[下界]
+ある計画がちょうど $2n-1$ 手を使うとする．観察 \ref{obs:floor} により回数は
+強制される．すなわち各 $i \in [1,n]$ はちょうど一度置かれ，
+各 $i \in [1,n-1]$ はちょうど一度除かれ，$n$ は除かれない．
+$i$ を置く時刻を $\pi(i)$，除く時刻を $\tau(i)$ と書く．
+$i$ を置くには $i-1$ にペブルが要り，$i-1$ は一度しか置かれないので
+$\pi(1) < \pi(2) < \cdots < \pi(n)$ である．
+
+$i \in [2,n-1]$ の除去を考える．これが可逆であるのは，時刻 $\tau(i)$ に
+$i-1$ がまだペブルを持つとき，すなわち $\tau(i) < \tau(i-1)$ のときちょうどである．
+よって不可逆な除去の回数は\emph{上昇}の個数
+\[
+  \#\{\, i \in [2,n-1] \;:\; \tau(i) > \tau(i-1) \,\}
+\]
+に等しい．節点 $1$ は直前が自由な入口なので常に可逆に除ける．
+$\tau$ の下降列は上の掃きの 1 ブロックに対応し，列が始まる前にその全員が
+同時にペブルを持つので，1 つの下降列は高々 $p-1$ 個の節点しか含まない．
+したがって少なくとも $\lceil (n-1)/(p-1)\rceil$ 個の下降列が要り，
+上昇は少なくとも $\lceil (n-1)/(p-1)\rceil - 1$ 個ある．
+\end{proof}
+
+証明の要点は，$2n-1$ という床が回数を完全に固定してしまうことである．
+自由度が消えるので，あとは除去の時刻の順列を数えるだけの問題になる．
+「不可逆な除去の回数 = 上昇の個数」という言い換えが効いている．
+
+\section{到達可能性}\label{sec:reach}
+\begin{theorem}\label{thm:B1}
+$p \ge 2$ かつ $e \ge 0$ のとき，長さ $(e+2)2^{p-2}$ の鎖は，ピーク $p$ と
+$e$ 回の不可逆な除去を持つクリーンな計画を許す．すなわち
+$\reach(p,e) \ge (e+2)2^{p-2}$．
+\end{theorem}
+\begin{proof}
+自由な入口から Bennett の再帰的な計画で $p$ 個のペブルにより $2^{p-1}$ へ到達する．
+$x$ に 1 個だけペブルがある配置から出発し，$x$ を踏み台として残りの $p-1$ 個で
+$x + 2^{p-2}$ へクリーンに到達し，$x$ のペブルを削除する．
+その時点で $x-1$ は空なのでこの削除は不可逆である．
+第 2 段を $e$ 回繰り返せば $2^{p-1} + e\,2^{p-2} = (e+2)2^{p-2}$ に達し，
+ピークは全体を通じて $p$ である．
+\end{proof}
+
+\begin{proposition}[実測による比較]\label{prop:ltv}
+\cite{LiTV98} の補題 1 は，定義 \ref{def:erasure} の模型では $e \ge 1$ について
+$\reach(p,e) \ge (e+1)2^{p-2}$ を与える．定理 \ref{thm:B1} はこれをちょうど
+1 ブロック（$2^{p-2}$）上回る．$e = 0$ では両者とも最適値 $2^{p-1}$ に一致する．
+\end{proposition}
+\begin{proof}[どう確かめたか]
+\cite{LiTV98} の補題 1 の主張は長さとペブル数の正規化が本資料と異なり，
+しかも論文の主張と証明の最終行が食い違っている（$T_G = m2^n$ 対 $T_G = m2^{n-1}$）．
+翻訳について議論する代わりに，彼らの手続き A を定義 \ref{def:erasure} の模型で
+実装し，得られた計画を検証器に通した．検証器は反転規則・ピーク・消去回数・
+クリーンな終端を検査する．$p \in \{4,\dots,8\}$ と $e \in \{1,\dots,6\}$ の
+30 通りすべてで到達長はちょうど $(e+1)2^{p-2}$ であり，本資料の構成は
+すべての場合に真に長く，比は $(e+2)/(e+1)$ であった．
+\end{proof}
+
+\begin{conjecture}[等号]\label{conj:B2}
+$\reach(p,e) = (e+2)2^{p-2}$．
+\end{conjecture}
+
+予想 \ref{conj:B2} は $p \le 6$ で全数探索により，$p \le 5$ で独立な 2 つの
+IC3 エンジンにより確かめてある．上界の証明は無い．
+
+\section{厳密値が語ること}\label{sec:values}
+表 \ref{tab:surface} は最小ピーク $p_{\min}$ における $\Mstar(n,p_{\min},e)$ の一部である．
+
+\begin{table}[tb]
+\centering
+\caption{最小ピークでの $\Mstar(n,p_{\min},e)$（抜粋）．
+各行は $e$ について非増加であり，$e = \estar$ でちょうど床 $2n-1$ に達して一定になる．}
+\label{tab:surface}
+\small
+\begin{tabular}{rrrrrrr}
+\toprule
+$n$ & $p_{\min}$ & $e=0$ & $e=1$ & $e=2$ & $e=3$ & 床 $2n-1$ \\
+\midrule
+4  & 3 & 9  & 7  & 7  & 7  & 7 \\
+6  & 4 & 15 & 11 & 11 & 11 & 11 \\
+16 & 5 & 71 & 45 & 37 & 31 & 31 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{消去とペブルは交換可能な資源ではない}
+$n=16$，最小ピーク $p_{\min}=5$ で見る．不可逆な除去を 1 回許すと手数は
+$71$ から $45$ へ下がる．一方ペブルを 1 個余分に与えても $51$ にしか下がらない．
+2 個ずつなら $37$ 対 $49$ である．この非対称性には構造的な読みがある．
+ペブルを 1 個増やすことは，再帰的な細分のそれぞれを少しずつ短くする．
+消去はそれとは違って，踏み台を 1 つまるごと取り除き，再計算の階層を 1 段消す．
+定理 \ref{thm:A} が踏み台を数えているのは，まさにこの効き方を捉えているからである．
+
+\paragraph{$n$ について単調ではない}
+$n=16$ では $p_{\min}=5$ で $\Mstar=71$ であるのに対し，$n=17$ では
+$p_{\min}=6$ で $\Mstar=57$ である．すなわち\emph{長い鎖のほうが手数が少ない}．
+理由は第 \ref{sec:reach} 節の到達可能性にある．$\reach(5)=2^4=16$ なので，
+長さ 17 の鎖は 5 個のペブルではそもそも解けない．長さ 17 が強制する 6 個目の
+ペブルが，増えた節点 1 個の代価より多くを買うのである．
+したがって $\Mstar(n,p_{\min}(n))$ という数列に式を当てはめる作業は，
+不連続をまたいで当てはめていることになる．
+
+\section{何がどこまで確かめられているか}\label{sec:certified}
+厳密値を扱う文書は，何が証明で何が計算にすぎないかを書かないことが多い．
+本資料は主張ごとに水準を明示する．
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+主張 & 水準 & 根拠 \\
+\midrule
+観察 \ref{obs:floor} & 引用 & \cite{Knill95} の観察 2.2(i) \\
+定理 \ref{thm:A}（上界） & 紙の証明 & 構成．機械化していない \\
+定理 \ref{thm:A}（下界） & 紙の証明 & 剛性の議論．機械化していない \\
+ & & $n \le 20$ の実例は DRAT で証明書つき \\
+定理 \ref{thm:B1} & 紙の証明 & 構成．機械化していない．63 実例を機械検証 \\
+命題 \ref{prop:ltv} & 機械実験 & 30 通り．計画を検証器に通した \\
+予想 \ref{conj:B2} & 予想 & 証明なし．$p \le 6$ で確認 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\emph{一般の主張はどれも機械証明されていない．}
+下界の有界な実例は SAT で解き，DRAT 証明書を \texttt{drat-trim} で独立に検査した．
+有界な全数検査は「すべての $n$ について証明した」ことにはならない．
+この区別は本資料でいちばん強調したい点である．
+
+\section{実装はどこにいるか}\label{sec:impl}
+既存の可逆メモ化の実装 2 本を計装し，交換面の上に位置づけた．
+どちらもこの面の\emph{端点}にあり，消去の軸をまったく使っていない．
+すなわち実在の可逆プログラムは，時間と空間だけで代価を払っており，
+消去を有限回使うという選択肢を取っていない．
+定理 \ref{thm:A} が示すのは，その選択肢が原理的には安いということである．
+$e = \estar(n,p)$ だけ払えば，手数は情報理論的な床 $2n-1$ まで落ちる．
+
+\section{ゼミでの読み方}
+第 \ref{sec:sat} 節の 2 つの証明だけで独立に読める．
+上界は構成なので図を描けば追える．下界は「回数が固定される」ことに気づけば
+順列の数え上げに落ちる．時間があれば，第 \ref{sec:values} 節の非単調性
+（$n=16$ で 71，$n=17$ で 57）を自分で確かめてみるとよい．
+なぜ長いほうが安いのかを説明できれば，到達可能性と手数の関係を理解したことになる．
+
+\begin{thebibliography}{9}
+\bibitem{Land61} R. Landauer, ``Irreversibility and heat generation in the
+computing process,'' IBM J. Res. Dev., vol.5, no.3, pp.183--191, 1961.
+\bibitem{Benn73} C.H. Bennett, ``Logical reversibility of computation,''
+IBM J. Res. Dev., vol.17, no.6, pp.525--532, 1973.
+\bibitem{Benn89} C.H. Bennett, ``Time/space trade-offs for reversible computation,''
+SIAM J. Comput., vol.18, no.4, pp.766--776, 1989.
+\bibitem{Knill95} E. Knill, ``An analysis of Bennett's pebble game,''
+Technical Report LAUR-95-2258, Los Alamos National Laboratory, 1995.
+\bibitem{Kral04} R. Kr\'a\v{l}ovi\v{c}, ``Time and space complexity of reversible pebbling,''
+RAIRO Theor. Inform. Appl., vol.38, no.2, pp.137--161, 2004.
+\bibitem{LiTV98} M. Li, J. Tromp, and P. Vit\'anyi, ``Reversible simulation of
+irreversible computation,'' Physica D, vol.120, no.1-2, pp.168--176, 1998.
+\bibitem{GW2018} J.A. Grochow and D.H. Wolpert, ``Beyond number of bit erasures.
+New complexity questions for stochastic thermodynamics of computation,''
+SIGACT News, vol.49, no.2, pp.33--56, 2018.
+\end{thebibliography}
+
+\end{document}

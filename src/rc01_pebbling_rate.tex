@@ -1,0 +1,328 @@
+%% 電子情報工学演習 セミナー資料 RC-01
+%% 鎖上の空間最適可逆ペブリングの増大率
+%% Build: make rc01（platex -> dvipdfmx）
+\documentclass[a4paper,11pt]{jsarticle}
+\usepackage[fleqn]{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{newtxtext}
+\usepackage[varg]{newtxmath}
+\usepackage{url}
+\usepackage[dvipdfmx,hidelinks]{hyperref}
+\def\UrlBreaks{\do\/\do-\do.\do:}
+\Urlmuskip=0mu plus 3mu
+\emergencystretch=1em
+\setlength{\parskip}{2pt}
+
+\newtheorem{theorem}{定理}
+\newtheorem{lemma}[theorem]{補題}
+\renewcommand{\proofname}{証明}
+
+\title{鎖上の空間最適可逆ペブリングの増大率\\
+\large 電子情報工学演習 セミナー資料 RC-01}
+\author{横山 哲郎（南山大学 理工学部 電子情報工学科）}
+\date{2026 年 8 月 30 日 12 時 16 分（JST）作成\\版 1.0}
+
+\begin{document}
+\maketitle
+
+\section{この文書について}
+本資料は電子情報工学演習のセミナー資料である．査読を受けた論文ではなく，
+ゼミで読むための解説として書いた．内容は，可逆ペブリングの
+「空間がちょうど最小のときの時間」の増大率 $c$ が厳密に決まったという結果と，
+その証明の筋を，背景と直観を足して日本語で説明したものである．
+
+参照先は次のとおりである．
+\begin{itemize}
+\setlength{\itemsep}{0pt}
+\item 機械証明．\url{https://github.com/yokoyama-lab/reversible-pebbling-lean}
+\item 本資料の版．\url{https://github.com/tetsuo-jp/rc-lecture-notes}
+\end{itemize}
+
+読者として想定しているのは，計算量の基本的な語彙（漸近記法，帰納法，極限）を
+持っている学部後半から大学院の学生である．可逆計算の予備知識は仮定しない．
+
+\section{何が問題だったか}
+可逆計算では中間結果を捨てられない．消すには逆計算する必要がある．
+鎖上の可逆ペブルゲーム \cite{Benn89} はその代償を捉える最小のモデルである．
+一手はノード $i$ のペブルを反転（置くか取る）することであり，$i = 1$ であるか，
+ノード $i-1$ にペブルが乗っているときに限り合法である．盤上のペブルは同時に高々
+$S$ 個とする．初期状態は空で，最終状態はノード $n$ にペブルが 1 個ある状態である．
+
+Knill \cite{Knill95} は最小手数 $F(n,S)$ の厳密な漸化式
+\begin{equation}
+F(n,S) = \min_m [F(m,S) + F(m,S{-}1) + F(n{-}m,S{-}1)], \quad F(1,S)=1
+\label{eq:knill}
+\end{equation}
+を示し，有限であることが $n \le 2^{S-1}$ と同値であること，および
+$(\log n)/S \le 1/2$ の領域での漸近挙動を確定した．
+
+未解決だったのは反対側の角である．$n = 2^{S-1}$，すなわち\emph{空間がちょうど最小}の
+ところでは $(\log n)/S \to 1$ であり，Knill の解析は届かない．
+そこでの手数 $f_p = F(2^{p-1},p)$ の増大率は，
+\cite{Kral04} の系 3.5 が与える $\Omega(n\lg n)$ と \cite{LiVi96a} の
+$O(n^{\log_2 3})$ の間に置かれたままであった．
+Bennett の戦略はペブル 1 個あたり最も遠くまで到達するという意味で\emph{空間}については
+最適である \cite{LiTV98} が，その $3^{p-1}$ 手が漸近的にも最適かは分かっていなかった．
+
+この角が重要なのは，応用が軒並みそこで効くからである．
+ゲームは Nullstellensatz 反駁のサイズと次数に厳密に対応し \cite{RMNR21}，
+並列版はメモリハード関数の耐量子安全性解析を担い \cite{BHL22}，
+量子コンパイルの補助量子ビット数とゲート数も決める．
+公表されている上側の指数は真の指数を上回っており，$\log_2 3 = 1.5850$ に対して
+$\log_2 c = 1.3317$ であるから，そこから見積もったゲート数には $n^{0.2532}$ という
+余分な因子が乗っていたことになる．
+
+\section{結果}
+\begin{quote}
+$c = 2^{1+\kappa^*}$．ここで $\kappa^* = \max_{q>0} V(q)$，
+$V(q) = 1/q - \log_2 \rho_c(q)$ であり，$\rho_c(q)$ は
+$\rho^{-q} + (1{+}\rho)^{-q} = 1$ の（一意な）根である．
+数値では $c = 2.5170648368938\ldots$，最大化子は $q^* = 1.5153832\ldots$ である．
+\end{quote}
+この恒等式は Lean~4 で\emph{仮定を一つも持たない}形で証明されている．
+$\kappa^*$ は Lean の内部で上限として定義され，達成されること（上限が最大値であること）も
+証明されている．$\kappa^*$ の小数展開も Lean の中にある（2026-08-22）．区間演算のタクティクは
+使っておらず，Rocq の層は同じ区間の独立な再検証として残っている．
+
+\section{記号}
+\begin{center}
+\begin{tabular}{ll}
+\hline
+$f_p = F(2^{p-1},p)$ & 空間最小での到達手数．$1,1,3,9,25,71,193,\dots$ \\
+$c = \lim_p f_p^{1/(p-1)}$ & 求める増大率（Knill 定数） \\
+$\delta(n,S) = \frac{F(n,S)-F(n-1,S)}{2}$ & 行方向の差分（偶数なので 2 で割る） \\
+$m_S = \delta(2^{S-2},S)$ & 行の中点 \\
+$M_S = \max_n \delta(n,S)$ & 行の最大値．$2,3,5,7,11,15,\dots$ \\
+$C_S(v) = |\{n : \delta(n,S) \le v\}|$ & 行の\emph{計数関数}（本資料の主役） \\
+$\Psi_S(v)$ & 上界を出すために作る形状（$C_S$ の劣解） \\
+$\zeta = X_S - \log_2 v$ & 前線 $X_S$ から測った深さ \\
+$q(\zeta)$ & 形状のプロファイル（設計データ） \\
+\hline
+\end{tabular}
+\end{center}
+
+\section{増大率が存在すること}
+まず $c$ が存在しなければ話が始まらない．これは戦略が合成できることから出る．
+
+\begin{lemma}\label{lem:submult}
+すべての $p, q \ge 1$ について $f_{p+q-1} \le f_p f_q$．
+\end{lemma}
+\begin{proof}
+長さ $2^{q-1}$ のブロックへ粗視化した鎖の上で $p$ ペブルの到達を走らせ，その各手を
+1 ブロックを渡る $q$ ペブルの到達で実装する．ピークは $p{+}q{-}1$，手数は $f_pf_q$ で
+ノード $2^{p+q-2}$ に到達する．
+\end{proof}
+
+\begin{theorem}[Knill 定数]\label{thm:cbound}
+$c = \lim_p f_p^{1/(p-1)}$ は存在し，$\inf_m f_{m+1}^{1/m}$ に等しく，すべての $m$ に
+ついて $c \le f_{m+1}^{1/m}$ が成り立つ．
+\end{theorem}
+\begin{proof}
+補題 \ref{lem:submult} により $\log f_p$ は（$p-1$ について）劣加法的であるから，
+Fekete の補題による．
+\end{proof}
+
+この定理は $c$ の上界を作る道具でもある．$f_4 = 25 < 27 = 3^3$ を入れるだけで
+$c \le 25^{1/3} < 3$ となり，公表されていた $O(n^{\log_2 3})$ が\emph{緊密でない}ことが
+すでに従う．$q = 2$（$f_2 = 3$）を入れると補題 \ref{lem:submult} はその公表された
+上界そのものを再現するので，利得は $q$ を大きく取ることから来ていると分かる．
+
+\section{行を数えるという転換}
+ここからが本題である．$f_p$ を直接追うのをやめ，\emph{行を数える}．
+
+行に沿った $F$ の差分は偶数なので $\delta(n,S)$ が定義できる．行は $n$ について
+非減少であり（Knill の補題 2.5），累積和により行 $S$ は多重集合
+\[
+\{1\} \cup \mathrm{row}(S{-}1) \cup \{\delta(i,S) + \delta(i,S{-}1)\}_{i \le 2^{S-2}}
+\]
+として表される．これを\emph{差分マージ性}と呼ぶ．漸化式 \eqref{eq:knill} の $\min$ が，
+二つの整列した列の併合という組合せ的な操作に化けるのが要点である．
+
+\begin{theorem}[閉じた形]\label{thm:2d}
+$d = \lim_S M_S^{1/(S-1)}$ は存在し，$c = 2d$．
+\end{theorem}
+\begin{proof}
+整列性から $f_S \ge 2^{S-1} m_S$，自明に $f_S \le 2^S M_S$ であり，併合により
+$M_S = m_S + M_{S-1}$ が厳密に成り立つので $M_S \le S m_S + O(1)$．多項式因子は
+根の極限で消える．
+\end{proof}
+
+これで問題は「行の中点 $m_S$ がどれくらいの速さで大きくなるか」に移った．
+計数関数 $C_S$ で言えば，$C_S(m_S) \ge 2^{S-2}$ という 1 点の情報を，
+$C_S$ 全体の振舞いから絞り込むことになる．
+
+\section{双対な 2 本の不等式}
+$C_S$ は向きの違う 2 本の不等式に従う．これが上下の界を生む．
+
+\paragraph{下から（劣解が上界を与える）}
+任意の分割 $u + w = v$ について
+\begin{equation}
+C_S(u{+}w) \ge 1 + C_{S-1}(u{+}w) + \min(C_{S-1}(u), C_S(w)).
+\label{eq:split}
+\end{equation}
+先頭の $\min(\cdot,\cdot)$ 個の整列した畳み込み要素が $u{+}w$ 以下だからである．
+この不等式の\emph{劣解}，すなわち \eqref{eq:split} と同じ不等式を満たしながら
+$C_S$ 以下に留まる関数 $\Psi_S$ を作れば，$\Psi_S \le C_S$ が帰納法で言え，
+$m_S$ が上から押さえられる．
+
+\paragraph{上から（優解が下界を与える）}
+$\{i : \delta(i,S) \le v\}$ は接頭部なので，その最後の添字を任意のしきい値 $\tau$ で
+切ると
+\begin{equation}
+C_S(v) \le 1 + C_{S-1}(v) + \max(C_S(\tau), C_{S-1}(v{-}1{-}\tau)).
+\label{eq:dual}
+\end{equation}
+その\emph{優解}が $m_S$ を下から押さえる．
+
+分かりやすく言えば，$\min$ の側は「これだけは数えられる」ことを保証するので構成的で，
+$\max$ の側は「これ以上は数えられない」ことを保証するので不可能性の側である．
+両者が同じ値で出会うことが，以下の主定理である．
+
+\section{下界}
+優解の方が易しい．純粋な冪をひとつ置けばよい．
+
+$\rho^{-q} + (1{+}\rho)^{-q} \le 1$ を満たす $q, \rho > 0$ を取り，
+$\Phi_S(v) = A v^q \rho^{qS}$ とおく．これは
+$\tau = \lfloor(v{-}1)/(1{+}\rho)\rfloor$ における \eqref{eq:dual} の優解である．
+実際，仮定はちょうど $\rho^q \ge 1 + \rho^q/(1{+}\rho)^q$ に他ならず，
+$A$ を大きく取れば余裕 $1/A$ が漸化式の $+1$ を一様に吸収するので，
+$(S,v)$ に関する帰納法が場合分けなしで閉じる．すると
+$2^{S-2} \le C_S(m_S) \le A m_S^q \rho^{qS}$ から
+\[
+c \ge 2^{1+1/q}/\rho .
+\]
+これは実 2 パラメータの定理 1 本であり，中に証明書（有限計算）を含まない．
+$q = 1$ のとき極値を与える $\rho$ は黄金比 $\varphi$ であり（$1/\varphi + 1/\varphi^2 = 1$），
+閉じた形 $c \ge 4/\varphi = 2\sqrt5 - 2$ が 1 行で出る．
+$\rho$ を臨界の $\rho_c(q)$ まで下げれば，すべての $q$ について $c \ge 2^{1+V(q)}$ であり，
+したがって $c \ge 2^{1+\kappa^*}$ である．
+
+小数を言うには $\rho_c$ の囲い込みが要るが，$q$ が有理数ならすべての冪が整数の比較に
+落ちる．$q^*$ の収束子 $q = 25366/16739$ を使うと 19 桁
+$c \ge 2.5170648368938161205$ が Lean の内部で再現できる．
+
+\section{上界}
+こちらが今回新しく得られたところである．\eqref{eq:split} の劣解を\emph{作る}．
+
+$\varepsilon > 0$ を固定し，$\lambda = \kappa^* + \varepsilon$，前線
+$X_S = X_0 + \lambda S$ とする．$v$ の前線からの深さを $\zeta = X_S - \log_2 v$ と書き，
+\[
+\Psi_S(v) = \left\lfloor (2^{S-1}{-}1)\, 2^{-I(\zeta)} \right\rfloor, \qquad
+I(\zeta) = \int_0^{\zeta^+} q
+\]
+とおく．プロファイル $q$ は設計データであり，$[0,H]$ では $q_h$ で平坦，その先は
+傾き $(q_h/10)\varepsilon$ の線形ランプで $q_{hi}$ に飽和する．
+具体的には $(q_h, q_{hi}, H) = (0.43,\, 3.2,\, 2.7)$ を採る．
+
+示すべきは $\Psi_S \le C_S$ であり，そのために深さの 4 領域それぞれで分割
+$u + w = v$ を選ぶ．
+
+\begin{enumerate}
+\setlength{\itemsep}{1pt}
+\item \textbf{キャップ域}（$\zeta \le 0$，前線より上）．形状はキャップに張り付いており，
+ステップは整数の恒等式 $2^S{-}1 = 1 + 2(2^{S-1}{-}1)$ そのものである．
+余裕はちょうど 0 なので，ここは整数の議論でしか閉じない．
+
+\item \textbf{帯}（$0 < \zeta \le \lambda$）と \textbf{弧}（$\lambda < \zeta$）．
+分割は $\min$ の 2 枝が同じ指数を担う\emph{均衡点}
+$\delta = \log_2(1 + 2^{1/q-\lambda})$ に置く．そこでの理想的な余裕はちょうど
+\[
+2^{q\lambda-1} + (1{+}\rho)^{-q} - 1, \qquad \rho = 2^{1/q-\lambda}
+\]
+であり，$\lambda = V(q)$ でこれが 0 になる．つまり\emph{下界の族が余裕ゼロになる点が，
+上界の構成が破綻する点でもある}．これが上下の界が一致する仕組みである．
+接線を取れば余裕
+$\ge \ln 2 \cdot q\,(\lambda - V(q))\,[\rho_c^{-q} - v_A/20]$ が出る．
+角括弧が正であることは，根においては $\rho_c^{-q} > 1/2$ である一方
+$v_A/20 \le 0.294$ であることから従い，$\lambda - V(q) \ge \varepsilon$ は
+$\kappa^*$ の定義そのものである．ランプの曲率と $u, w$ を整数へ丸めることによる誤差は
+明示的な誤差項として入り，いずれも $O(\varepsilon)$ だけ小さい．
+
+\item \textbf{尾部}（飽和より深く）．$q_{hi}\lambda > 1$ がキャップ比を追い越すので，
+どんな分割でもよい．
+\end{enumerate}
+
+4 領域が $v \ge 2$ の全域を覆うことは，三つのしきい値についての三分法から\emph{導かれる}
+（仮定ではない）．床の吸収は $\varepsilon\, 2^{S-1}$ が飽和深さでの重みを超えたとき，
+すなわち $S \ge S_0(\varepsilon)$ で効く．
+
+最後に読み出す．深さ $\zeta = 1/q_h$ では $I = 1$ であり，
+$\Psi_S = \lfloor(2^{S-1}{-}1)/2\rfloor = 2^{S-2}-1$ がちょうど成り立つ（ここも余裕ゼロ）．
+これで $m_S \le 2^{X_S - 1/q_h}$，したがって $\log_2 m_S \le \lambda S + O(1)$，
+$d \le 2^{\lambda}$ を得る．$\varepsilon \to 0$ として $c \le 2^{1+\kappa^*}$ である．
+
+\section{$\kappa^*$ が最大値であること，そしてその値}
+$\kappa^* = \sup_q V(q)$ が実際に達成されることも示してある．
+$\rho_c$ が $q$ について連続であること（陰関数定理は使わず，$G(q,\cdot)$ が狭義減少で
+あることと中間値の定理から順序だけで出る），$q$ が大きい側は $V(q) \le 1/q$，
+小さい側は $q \le 1/2$ で $V(q) \le 3/10 < 33/100 \le V(3/2)$ が尾部を落とすこと，
+残るコンパクト区間で最大値を取ること，の 3 段である．
+
+値そのものも Lean の中で
+\[
+\begin{aligned}
+\kappa^* &\in [0.3317423792563105,\; 0.3317423792563106], \\
+c &\in [2.517064836893816,\; 2.517064836893817]
+\end{aligned}
+\]
+と囲い込んである（\texttt{KappaEnclosure}）．\textbf{区間演算のタクティクは使っていない}．
+Gibbs の不等式で $V(q) \le \Lambda(\theta,\rho)$ と押さえると陰関数の根が消えて
+$\rho$ だけの明示関数になり，$\Lambda$ は $\log\rho$ について凸なので，
+区間の内部は端点 2 点の評価で尽きる（34 区間）．数値の原始命題は
+Mathlib の対数の級数評価だけである．
+16 桁の値は 2026-08-22 まで Rocq の結果を名前つきの仮定として担いでいたが，
+その 2 本（\texttt{KappaUpperBound}／\texttt{KappaAttained}）は定理になった．
+正確値 $c = 2^{1+\kappa^*}$ に関わる「担ぎ」はこれで無い．
+同じ区間を Rocq + CoqInterval が独立に検証している．
+
+\section{何がどこまで機械検査されているか}
+\begin{center}
+\begin{tabular}{ll}
+\hline
+主張 & 状態 \\
+\hline
+$c = 2^{1+\kappa^*}$ & Lean 4，仮定ゼロ，標準 3 公理のみ \\
+$\kappa^*$ が最大値 & Lean 4，同上 \\
+下界 $c \ge 2^{1+1/q}/\rho$ & Lean 4，実 2 パラメータで一般 \\
+上界の全段（形状・4 領域・被覆・読み出し） & Lean 4，一般 \\
+$\kappa^*$ の 16 桁の値 & Lean 4（Rocq + CoqInterval が独立に再検証） \\
+\hline
+\end{tabular}
+\end{center}
+
+アーティファクトは 861 定理，67 ステージであり，公理監査（標準 3 公理のみか）と
+主張の対応検査を自動で回している．独立な検算を 3 巡かけており，そのたびに実在の
+欠陥が出ている．とくに繰り返し出たのは「仮定を書き忘れて領域が無主地になる」型で，
+上界の構成では帯とキャップの境界に整数 1 個の隙間が空いていたのを 3 巡目で見つけて
+塞いだ．3 巡目では，主張そのものではなく\emph{監査の網の掛け方}に穴があった
+（組み上げの層 47 定理が manifest に登録されておらず，「公理監査が緑」の射程が
+実際より狭かった）．数学は無傷だったが，検査の射程を主張するときは，
+その射程自体を検査しないといけないという教訓である．
+
+\section{読み進め方}
+証明の細部を追うなら，Lean のソースを直接読むのが早い．
+形状の定義とステップが \texttt{Shape}／\texttt{Regions}，
+弧の余裕が \texttt{ArcMargin}／\texttt{ArcStep}，組み上げが \texttt{Assemble}，
+読み出しと極限が \texttt{Final}，達成性が \texttt{KappaAttainment} にある．
+
+\begin{thebibliography}{9}
+\bibitem{Benn89} C.H. Bennett, ``Time/space trade-offs for reversible computation,''
+SIAM J. Comput., vol.18, no.4, pp.766--776, 1989.
+\bibitem{Knill95} E. Knill, ``An analysis of Bennett's pebble game,''
+Technical Report LAUR-95-2258, Los Alamos National Laboratory, 1995.
+\bibitem{Kral04} R. Kr\'a\v{l}ovi\v{c}, ``Time and space complexity of reversible pebbling,''
+RAIRO Theor. Inform. Appl., vol.38, no.2, pp.137--161, 2004.
+\bibitem{LiVi96a} M. Li and P. Vit\'anyi, ``Reversibility and adiabatic computation.
+Trading time and space for energy,'' Proc. Roy. Soc. London Ser. A, vol.452,
+no.1947, pp.769--789, 1996.
+\bibitem{LiTV98} M. Li, J. Tromp, and P. Vit\'anyi, ``Reversible simulation of
+irreversible computation,'' Physica D, vol.120, no.1-2, pp.168--176, 1998.
+\bibitem{RMNR21} S.F. de Rezende, O. Meir, J. Nordstr\"om, and R. Robere,
+``Nullstellensatz size-degree trade-offs from reversible pebbling,''
+Comput. Complexity, vol.30, no.1, p.4, 2021.
+\bibitem{BHL22} J. Blocki, B. Holman, and S. Lee, ``The parallel reversible pebbling game.
+Analyzing the post-quantum security of iMHFs,'' TCC 2022, pp.52--79, 2022.
+\end{thebibliography}
+
+\end{document}
