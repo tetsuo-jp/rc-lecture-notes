@@ -46,7 +46,27 @@ sha256sum -c SHA256SUMS
 ```
 
 版を改めるときは新しいファイル（`rc01-v1.1.pdf` など）を追加し、旧版は残す。
-このリポジトリのコミット履歴が、どの内容がいつ存在したかの記録になる。
+
+### 時刻証明（OpenTimestamps）
+
+git のコミット日時は書き換えられるので、それだけでは「いつ存在したか」の証拠にならない。
+そこで `SHA256SUMS` に **OpenTimestamps** の時刻証明を付けている
+（[SHA256SUMS.ots](SHA256SUMS.ots)）。これは Bitcoin ブロックチェーンに固定された
+第三者検証可能な証明であり、誰にも申請せずに作れて、後から改竄できない。
+
+```sh
+ots verify SHA256SUMS.ots   # SHA256SUMS が同じディレクトリにあること
+```
+
+押印直後は `Pending confirmation in Bitcoin blockchain` と出る。
+ブロックに取り込まれた後（数時間から 1 日程度）に一度だけ
+
+```sh
+ots upgrade SHA256SUMS.ots  # 確定した証明を .ots に埋め込む
+```
+
+を実行し、更新された `.ots` をコミットすること。**この upgrade を忘れると、
+カレンダーサーバが消えたときに証明が失われる。**
 
 ## ビルド
 

@@ -5,7 +5,7 @@ DVI = dvipdfmx -q
 VER = v1.0
 DOCS = rc01_pebbling_rate rc02_erasure_pebbling rc03_resource_atlas
 
-.PHONY: all clean sums
+.PHONY: all clean sums stamp upgrade
 all: $(DOCS:%=pdf/%.stamp)
 
 pdf/%.stamp: src/%.tex
@@ -20,3 +20,14 @@ sums:
 
 clean:
 	cd src && rm -f *.aux *.log *.dvi *.out *.toc *.pdf
+
+# 時刻証明（OpenTimestamps）。OTS = ots クライアントの場所
+OTS = $(HOME)/.venvs/ots/bin/ots
+
+stamp: SHA256SUMS
+	$(OTS) stamp SHA256SUMS
+	@echo "押印した。数時間後に make upgrade を実行し、確定した .ots をコミットすること。"
+
+upgrade:
+	$(OTS) upgrade SHA256SUMS.ots
+	$(OTS) verify SHA256SUMS.ots
