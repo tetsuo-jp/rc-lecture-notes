@@ -83,6 +83,10 @@ git のコミット日時は書き換えられるので、それだけでは「�
 ots verify SHA256SUMS.ots   # SHA256SUMS が同じディレクトリにあること
 ```
 
+⚠ `ots verify` は Bitcoin ノード（`~/.bitcoin/`）を必要とする。手元に無い場合は
+`ots info SHA256SUMS.ots` で `BitcoinBlockHeaderAttestation(<高さ>)` が入っているかを見て、
+そのブロックの時刻をブロックエクスプローラで確かめればよい。
+
 押印直後は `Pending confirmation in Bitcoin blockchain` と出る。
 ブロックに取り込まれた後（数時間から 1 日程度）に一度だけ
 
@@ -92,6 +96,23 @@ ots upgrade SHA256SUMS.ots  # 確定した証明を .ots に埋め込む
 
 を実行し、更新された `.ots` をコミットすること。**この upgrade を忘れると、
 カレンダーサーバが消えたときに証明が失われる。**
+
+#### 資料を追加して SHA256SUMS を作り直すとき
+
+`SHA256SUMS` が変わると、それまでの `.ots` はもう `SHA256SUMS` を検証できなくなる。
+古い証明は「その時点で確かに存在した」という別個の証拠なので、捨てずに残す。手順は次のとおり。
+
+1. `ots upgrade SHA256SUMS.ots` で**先に古い証明を確定させる**（pending のまま捨てない）
+2. その時点の `SHA256SUMS` と `.ots` を日付つきの名前で残す
+   （例: `SHA256SUMS-20260830` と `SHA256SUMS-20260830.ots`）
+3. `make sums` で新しい `SHA256SUMS` を作る
+4. `make stamp` で押印する（`ots stamp` は既存の `.ots` を上書きしないので、2 を先に済ませておくこと）
+5. 数時間後に `make upgrade` して、更新された `.ots` をコミットする
+
+| 証明 | 対象 | 状態 |
+|---|---|---|
+| [SHA256SUMS-20260830.ots](SHA256SUMS-20260830.ots) | [SHA256SUMS-20260830](SHA256SUMS-20260830)（RC-01〜RC-03） | Bitcoin ブロック 964698 等で確定済み |
+| [SHA256SUMS.ots](SHA256SUMS.ots) | [SHA256SUMS](SHA256SUMS)（RC-01〜RC-04） | 2026-08-31 押印。**upgrade 待ち** |
 
 ## ビルド
 
