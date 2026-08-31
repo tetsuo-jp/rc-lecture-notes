@@ -112,7 +112,7 @@ ots upgrade SHA256SUMS.ots  # 確定した証明を .ots に埋め込む
 | 証明 | 対象 | 状態 |
 |---|---|---|
 | [SHA256SUMS-20260830.ots](SHA256SUMS-20260830.ots) | [SHA256SUMS-20260830](SHA256SUMS-20260830)（RC-01〜RC-03） | Bitcoin ブロック 964698 等で確定済み |
-| [SHA256SUMS.ots](SHA256SUMS.ots) | [SHA256SUMS](SHA256SUMS)（RC-01〜RC-04） | 2026-08-31 押印。**upgrade 待ち** |
+| [SHA256SUMS.ots](SHA256SUMS.ots) | [SHA256SUMS](SHA256SUMS)（RC-01〜RC-04） | Bitcoin ブロック 964828 / 964831 で確定済み |
 
 ## ビルド
 
