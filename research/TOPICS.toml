@@ -1,0 +1,85 @@
+# 目的: この repo から出る「次の論文候補」の置き場。tetsuo-jp/topic-mining の tools/radar.py が各 repo の research/TOPICS.toml を集約する。
+# 1 分で追加する方法: 下の [[topic]] を 1 ブロック複製し、id（変更しない）・title・value・effort・novelty・evidence（リポ内パス:行）・next を埋めて commit する。
+# status は candidate|active|parked|done|dropped。着手したら active、見送るなら dropped に変えるだけでよい（消さない）。
+# 台帳（registry）への登録は人の判断で別途行う。ここに書いただけでは台帳には載らない。
+# score = 2*value + N + E + W + V - stale。N: new +3 / partial +1 / unclear 0 / known -5。E: S +2 / M +1 / L 0。
+# W: waiting_on あり +1。V: venue あり +1。stale: updated から 90 日超で -1。順位の目安であって決定ではない。
+
+repo = "tetsuo-jp/rc-lecture-notes"
+updated = 2026-09-23
+
+[[topic]]
+id = "rc02-b2-upper-bound-lean"
+title = "消去予算つき可逆ペブリングの到達長予想 B2 の上界証明と RC-02 定理 A/B1 の Lean 化"
+status = "candidate"
+value = 5
+effort = "L"
+novelty = "new"
+evidence = "src/rc02_erasure_pebbling.tex:196-201"
+next = "reach(p,e) <= (e+2)2^(p-2) の上界を p<=6 の全数探索の計画から帰納の形に起こし、定理 A の下界（剛性の議論）から Lean 化を始める"
+layer = 1
+venue = "RC 2027 / IEICE Trans. A"
+source = "topic-mining 2026-09-23 https://claude.ai/artifact/KvkvdE6pDADvaCYRnrNDmu rank 1"
+note = "予想 B2 は p<=6 の全数探索と p<=5 の IC3 で確認済みだが「上界の証明は無い」（:200-201）。水準表（:245-262）のとおり定理 A/B1・命題 ltv を含め「一般の主張はどれも機械証明されていない」（:261）ので、機械化の候補はこの 1 件にまとめた。Lean 側は yokoyama-lab/reversible-pebbling-lean に置く。非交換性 M*(n,p,e+1) <= M*(n,p+1,e) の一般化（:223-230）も同じ枠で扱える。"
+
+[[topic]]
+id = "rc03-janus-cost-semantics-laws"
+title = "Janus のコスト意味論とリソース法則：6 点一致の等式の証明とスタック不使用の構文的判定"
+status = "candidate"
+value = 4
+effort = "M"
+novelty = "new"
+evidence = "src/rc03_resource_atlas.tex:223-234"
+next = "gcd 族の「スタックのピーク = 除算回数 k」を Janus の小ステップ意味論にコストを添えた形で述べ、1 族について紙の証明を書く"
+venue = "IPSJ PRO / TOPRO"
+source = "topic-mining 2026-09-23 https://claude.ai/artifact/KvkvdE6pDADvaCYRnrNDmu rank 3"
+note = "RC-03 は gcd・バブルソート・切り出し問題の等式が「6 点での一致であって証明ではない」と明記し（:234, :311）、上向き DP 3 族のスタック不使用も規模を振った観察にとどまる（:230-233）。定理を主張しない機械実験（:318）を定理に格上げする道筋。"
+
+[[topic]]
+id = "rc01-knill-constant-correction-table"
+title = "厳密 Knill 定数 c（log2 c = 1.3317）による応用側の見積もりの訂正表"
+status = "candidate"
+value = 3
+effort = "S"
+novelty = "new"
+evidence = "src/rc01_pebbling_rate.tex:60-74"
+next = "log2 3 を使っている Nullstellensatz・メモリハード関数・量子コンパイルの見積もり（:69-71 の引用先）を洗い出し、指数 1.3317 に置き換えた表を 1 頁で作る"
+venue = "短報 / RC"
+source = "topic-mining 2026-09-23 https://claude.ai/artifact/KvkvdE6pDADvaCYRnrNDmu rank 12"
+note = "RC-01 は「公表されている上側の指数は真の指数を上回っており」「n^0.2532 という余分な因子が乗っていた」（:72-74）と述べるが、訂正表そのものは載せていない。c の恒等式は Lean で仮定なしに証明済み（:83-85）なので定数側の根拠は既にある。"
+
+[[topic]]
+id = "rc03-scaled-inputs-output-garbage"
+title = "RC-03 資源アトラスの拡張：固定入力・25 ノード基線の限界と出力/ゴミの判定"
+status = "candidate"
+value = 3
+effort = "M"
+novelty = "partial"
+evidence = "src/rc03_resource_atlas.tex:302-317"
+next = "規模を振った 9 族にグラフ探索と平衡木を加え、終端状態に出力/ゴミの印を付ける計測器の拡張を 1 族で試す"
+source = "RC-03 限界とまとめ（第一〜第六）から起こした候補 2026-09-23"
+note = "RC-03 自身が挙げる限界：第一（固定入力、規模を振ったのは 9 族）、第二（終端状態が出力かゴミかを判定しない :94, :306-307）、第三（基準線は節点数 25 以下）、第四（被覆が処理系依存）、第六（割合が母集団依存）。第五（6 点一致）は rc03-janus-cost-semantics-laws に分けた。"
+
+[[topic]]
+id = "rc02-surface-formula-nonmonotone"
+title = "最小ピークでの M*(n, p_min(n), e) の閉じた式：n について単調でない表面の記述"
+status = "candidate"
+value = 3
+effort = "M"
+novelty = "unclear"
+evidence = "src/rc02_erasure_pebbling.tex:203-238"
+next = "reach(p) の不連続点 n = 2^(p-2)+1 ごとに区切って M*(n,p_min(n),e) を n<=20 で表にし、区間内で式が当たるかを見る"
+source = "RC-02 厳密値が語ること（:231-238）から起こした候補 2026-09-23"
+note = "RC-02 は n=16 と n=17 で長い鎖のほうが手数が少ないことを示し、「数列に式を当てはめる作業は不連続をまたいで当てはめている」（:237-238）と注意する。区間ごとの式が存在するかは資料では未検討で、novelty は unclear。"
+
+[[topic]]
+id = "rc04-min-moves-table-crosscheck"
+title = "RC-04 最小手数表の拡張と RC-01/RC-02 の厳密値との照合"
+status = "candidate"
+value = 3
+effort = "S"
+novelty = "partial"
+evidence = "README.md:50-52"
+next = "RC-04 の幅優先探索の結果表を T>8 に延ばし、RC-01 の f_p と RC-02 の e=0 列と数値が一致するかを 1 表で照合する"
+source = "README（RC-04 の節）から起こした候補 2026-09-23"
+note = "RC-04 は石の数の限界 T <= 2^(S'-1) を文献から引き、小さい T だけ全数検査している（README.md:50-52）。版 2.0 では T=8 の最小手数の誤りを全数探索で見つけて訂正した（README.md:62-63）。RC-04 の原稿は Overleaf のプロジェクト「可逆計算入門」にあり、この repo には PDF しか無い（README.md:54-56）ので、evidence は README 側を指す。"
