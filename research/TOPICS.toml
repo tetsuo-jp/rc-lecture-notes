@@ -33,7 +33,7 @@ evidence = "src/rc03_resource_atlas.tex:223-234"
 next = "gcd 族の「スタックのピーク = 除算回数 k」を Janus の小ステップ意味論にコストを添えた形で述べ、1 族について紙の証明を書く"
 venue = "IPSJ PRO / TOPRO"
 source = "topic-mining 2026-09-23 https://claude.ai/artifact/KvkvdE6pDADvaCYRnrNDmu rank 3"
-note = "RC-03 は gcd・バブルソート・切り出し問題の等式が「6 点での一致であって証明ではない」と明記し（:234, :311）、上向き DP 3 族のスタック不使用も規模を振った観察にとどまる（:230-233）。定理を主張しない機械実験（:318）を定理に格上げする道筋。"
+note = "RC-03 は gcd・バブルソート・切り出し問題の等式が「6 点での一致であって証明ではない」と明記し（:234, :312）、上向き DP 3 族のスタック不使用も規模を振った観察にとどまる（:230-233）。定理を主張しない機械実験（:317）を定理に格上げする道筋。"
 
 [[topic]]
 id = "rc01-knill-constant-correction-table"
